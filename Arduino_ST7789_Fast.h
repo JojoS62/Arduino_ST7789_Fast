@@ -13,10 +13,15 @@
 #define CS_ALWAYS_LOW
 // ------------------------------
 
+#ifndef __MBED__
 #include "Arduino.h"
 #include "Print.h"
-#include <Adafruit_GFX.h>
 #include <avr/pgmspace.h>
+#else
+#include "mbed.h"
+#endif
+
+#include <Adafruit_GFX.h>
 
 #define ST7789_TFTWIDTH 	240
 #define ST7789_TFTHEIGHT 	240
@@ -83,7 +88,11 @@
 class Arduino_ST7789 : public Adafruit_GFX {
 
  public:
+#ifndef __MBED__
   Arduino_ST7789(int8_t DC, int8_t RST, int8_t CS = -1);
+#else
+  Arduino_ST7789(PinName mosi, PinName miso, PinName sck, PinName CS, PinName RS, PinName RST);
+#endif
 
   void init(uint16_t width, uint16_t height);
   void begin() { init(ST7789_TFTWIDTH,ST7789_TFTHEIGHT); }
@@ -128,9 +137,16 @@ class Arduino_ST7789 : public Adafruit_GFX {
   void commonST7789Init(const uint8_t *cmdList);
 
  private:
+#ifndef __MBED__
   int8_t  csPin, dcPin, rstPin;
   uint8_t  csMask, dcMask;
   volatile uint8_t  *csPort, *dcPort;
+#else
+    SPI lcdPort;            // SPI with MISO optional
+    DigitalOut _cs;         // CS (optional)
+    DigitalOut _rs;         // data/command select
+    DigitalOut _rst;        // reset
+#endif
 
 };
 

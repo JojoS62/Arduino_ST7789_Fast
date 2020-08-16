@@ -3,9 +3,12 @@
 
 #include "Arduino_ST7789_Fast.h"
 #include <limits.h>
+#ifndef __MBED__
 #include "pins_arduino.h"
 #include "wiring_private.h"
 #include <SPI.h>
+#else
+#endif
 
 // Initialization commands for ST7789 240x240 1.3" IPS
 // taken from Adafruit
@@ -35,6 +38,7 @@ static const uint8_t PROGMEM init_240x240[] = {
     ST7789_DISPON ,   ST_CMD_DELAY,  		// 9: Main screen turn on, no args, w/delay
       20 };                  				// 255 = 500 ms delay
 
+#ifndef __MBED__
 #ifdef COMPATIBILITY_MODE
 static SPISettings spiSettings;
 #define SPI_START  SPI.beginTransaction(spiSettings)
@@ -94,19 +98,6 @@ Arduino_ST7789::Arduino_ST7789(int8_t dc, int8_t rst, int8_t cs) : Adafruit_GFX(
 }
 
 // ----------------------------------------------------------
-void Arduino_ST7789::init(uint16_t width, uint16_t height) 
-{
-  commonST7789Init(NULL);
-
-  _colstart = ST7789_240x240_XSTART;
-  _rowstart = ST7789_240x240_YSTART;
-  _width  = width;
-  _height = height;
-  displayInit(init_240x240);
-  setRotation(2);
-}
-
-// ----------------------------------------------------------
 void Arduino_ST7789::writeCmd(uint8_t c) 
 {
   DC_COMMAND;
@@ -131,6 +122,63 @@ void Arduino_ST7789::writeData(uint8_t c)
   CS_IDLE;
   SPI_END;
 }
+#else
+// defined __MBED__
+#define DC_DATA     _rs = 1;
+#define DC_COMMAND  _rs = 0;
+#ifdef CS_ALWAYS_LOW
+#define CS_IDLE
+#define CS_ACTIVE
+#else
+#define CS_IDLE     _cs = 1;
+#define CS_ACTIVE   _cs = 0;
+#endif
+#define SPI_START
+#define SPI_END
+
+#define writeSPI(c)     lcdPort.write(c)
+
+Arduino_ST7789::Arduino_ST7789(PinName mosi, PinName miso, PinName sck, PinName cs, PinName rs, PinName rst)  : 
+  Adafruit_GFX(ST7789_TFTWIDTH, ST7789_TFTHEIGHT), 
+  lcdPort(mosi, miso, sck), 
+  _cs(cs), _rs(rs), _rst(rst)
+{ 
+}
+
+void Arduino_ST7789::writeCmd(uint8_t c)
+{
+    _rs = 0;
+    _cs = 0;
+    lcdPort.write( c );
+    _cs = 1;
+}
+
+
+void Arduino_ST7789::writeData(uint8_t c)
+{
+    _rs = 1;
+    _cs = 0;
+    lcdPort.write( c );
+
+    _cs = 1;
+}
+#endif
+
+// ----------------------------------------------------------
+void Arduino_ST7789::init(uint16_t width, uint16_t height) 
+{
+  lcdPort.format(8, 2);
+  lcdPort.frequency(40e6);
+
+  commonST7789Init(NULL);
+
+  _colstart = ST7789_240x240_XSTART;
+  _rowstart = ST7789_240x240_YSTART;
+  _width  = width;
+  _height = height;
+  displayInit(init_240x240);
+  setRotation(2);
+}
 
 // ----------------------------------------------------------
 void Arduino_ST7789::displayInit(const uint8_t *addr) 
@@ -148,7 +196,7 @@ void Arduino_ST7789::displayInit(const uint8_t *addr)
     if(ms) {
       ms = pgm_read_byte(addr++); // Read post-command delay time (ms)
       if(ms == 255) ms = 500;     // If 255, delay for 500 ms
-      delay(ms);
+        delay(ms);
     }
   }
 }
@@ -160,6 +208,7 @@ void Arduino_ST7789::commonST7789Init(const uint8_t *cmdList)
   _ystart = _xstart = 0;
   _colstart  = _rowstart = 0; // May be overridden in init func
 
+#ifndef __MBED__
   pinMode(dcPin, OUTPUT);
 #ifndef CS_ALWAYS_LOW
 	pinMode(csPin, OUTPUT);
@@ -192,6 +241,18 @@ void Arduino_ST7789::commonST7789Init(const uint8_t *cmdList)
     digitalWrite(rstPin, HIGH);
     delay(50);
   }
+#else
+  
+  CS_ACTIVE;
+  if(_rst.is_connected()) {
+    _rst = 1;
+    delay(50);
+    _rst = 0;
+    delay(50);
+    _rst = 1;
+    delay(50);
+  }
+#endif
 
   if(cmdList) displayInit(cmdList);
 }
