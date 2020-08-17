@@ -168,7 +168,7 @@ void Arduino_ST7789::writeData(uint8_t c)
 void Arduino_ST7789::init(uint16_t width, uint16_t height) 
 {
   lcdPort.format(8, 2);
-  lcdPort.frequency(40e6);
+  lcdPort.frequency(42e6);
 
   commonST7789Init(NULL);
 
