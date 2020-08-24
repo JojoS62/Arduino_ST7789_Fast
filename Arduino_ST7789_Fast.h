@@ -74,14 +74,14 @@
 
 
 // Color definitions
-#define	BLACK   0x0000
-#define	BLUE    0x001F
-#define	RED     0xF800
-#define	GREEN   0x07E0
-#define CYAN    0x07FF
-#define MAGENTA 0xF81F
-#define YELLOW  0xFFE0
-#define WHITE   0xFFFF
+#define	ST7789_BLACK   0x0000
+#define	ST7789_BLUE    0x001F
+#define	ST7789_RED     0xF800
+#define	ST7789_GREEN   0x07E0
+#define ST7789_CYAN    0x07FF
+#define ST7789_MAGENTA 0xF81F
+#define ST7789_YELLOW  0xFFE0
+#define ST7789_WHITE   0xFFFF
 
 #define RGBto565(r,g,b) ((((r) & 0xF8) << 8) | (((g) & 0xFC) << 3) | ((b) >> 3)) 
 
@@ -99,9 +99,9 @@ class Arduino_ST7789 : public Adafruit_GFX {
   void init() { init(ST7789_TFTWIDTH,ST7789_TFTHEIGHT); }
   void setAddrWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
   void pushColor(uint16_t color);
-  void fillScreen(uint16_t color=BLACK);
-  void clearScreen() { fillScreen(BLACK); }
-  void cls() { fillScreen(BLACK); }
+  void fillScreen(uint16_t color=ST7789_BLACK);
+  void clearScreen() { fillScreen(ST7789_BLACK); }
+  void cls() { fillScreen(ST7789_BLACK); }
   void drawPixel(int16_t x, int16_t y, uint16_t color);
   void drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color);
   void drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color);

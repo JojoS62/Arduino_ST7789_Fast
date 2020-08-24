@@ -147,20 +147,19 @@ Arduino_ST7789::Arduino_ST7789(PinName mosi, PinName miso, PinName sck, PinName 
 
 void Arduino_ST7789::writeCmd(uint8_t c)
 {
-    _rs = 0;
-    _cs = 0;
-    lcdPort.write( c );
-    _cs = 1;
+    DC_COMMAND;
+    CS_ACTIVE;
+    lcdPort.write(c);
+    CS_IDLE;
 }
 
 
 void Arduino_ST7789::writeData(uint8_t c)
 {
-    _rs = 1;
-    _cs = 0;
-    lcdPort.write( c );
-
-    _cs = 1;
+    DC_DATA;
+    CS_ACTIVE;
+    lcdPort.write(c);
+    CS_IDLE;
 }
 #endif
 
